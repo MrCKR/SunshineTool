@@ -10,7 +10,7 @@
 7. 打开应用时执行命令:C:\SunshineTool\SunshineTool.exe r=open x= %SUNSHINE_CLIENT_WIDTH% y=%SUNSHINE_CLIENT_HEIGHT% fps=%SUNSHINE_CLIENT_FPS% steam=true
 8. 退出应用时执行命令:C:\SunshineTool\SunshineTool.exe r=close steam=true
 9. 上面的C:\SunshineTool\SunshineTool.exe应该修改为你自己的目录
-10. 上面的 steam=true 代表启动或退出steam大屏幕模式,不需要就修改为 steam=true 在app的配置中自己选择,如果配置steam大屏幕app时,记得把sunshine原本的命令删除
-11. 同文件夹下的cfg.json是配置文件,里面的参数代表结束串流时,主屏幕默认的分辨率,帧率,记得安装自己的显示器参数修改
+10. 上面的 steam=true 代表启动或退出steam大屏幕模式,不需要就修改为 steam=false,在app的配置中自己选择,如果配置steam大屏幕app时,记得把sunshine原本的命令删除
+11. 同文件夹下的cfg.json是配置文件,里面的参数代表结束串流时,主屏幕默认的分辨率,帧率,记得按照自己的显示器参数修改
 12. 假如在串流时使用了关机,没有退出应用程序,重启之后回黑屏,需要耐心等待半分钟(可能更短),会自动恢复的,不要着急
 13. 如果等待了很久还是黑屏,或者出现了什么莫名其妙的黑屏的情况,要么将hdmi诱骗工具拔了重启,要么使用键盘 win+P 等半秒钟再回车 ,这是切换屏幕模式的快捷键,多试几次

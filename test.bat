@@ -1,7 +1,7 @@
-set width=2560
-set height=1080
-set fps=144
-C:\Users\qq285\Desktop\SunshineTool\sunshine_do.bat --width %width% --height %height% --fps %fps% --steam true
-::C:\Users\qq285\Desktop\SunshineTool\sunshine_do.bat --width "2560" --height "1080" --steam "true"
-::C:\Users\qq285\Desktop\SunshineTool\sunshine_undo.bat --steam true
-timeout /t 20 /nobreak > nul
+set x=1260
+set y=720
+set fps=60
+
+C:\Users\qq285\Desktop\SunshineTool\SunshineTool.exe r=open x=%x% y=%y% fps=%fps% steam=true
+timeout /t 10 /nobreak > nul
+C:\Users\qq285\Desktop\SunshineTool\SunshineTool.exe r=close steam=true

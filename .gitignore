@@ -1,1 +1,4 @@
 .history/
+*.sln
+SunshineTool/bin/
+SunshineTool/obj/

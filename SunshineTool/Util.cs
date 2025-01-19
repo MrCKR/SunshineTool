@@ -208,10 +208,12 @@ public static class Util
 
     public static void Log(string msg)
     {
+        return;
+        msg = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {msg}";
         var logPath = Path.Combine(AppDir, "log.log");
         if (!File.Exists(logPath))
         {
-            using (var fs = File.Create(logPath)){}
+            using (var fs = File.Create(logPath)) { }
         }
         File.AppendAllText(logPath, msg + "\r\n");
     }

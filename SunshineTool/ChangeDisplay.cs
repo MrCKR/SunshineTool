@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-public static class ChangeDisplay
+public static class DisplayUtil
 {
 
     private const uint SDC_APPLY = 0x00000080;
@@ -152,6 +152,20 @@ public static class ChangeDisplay
                 }
             }
         }
+    }
+
+    public static (int, int, int) GetCurResolution()
+    {
+        // 初始化 DEVMODE结构
+        DEVMODE devmode = new DEVMODE();
+        devmode.dmDeviceName = new String(new char[32]);
+        devmode.dmFormName = new String(new char[32]);
+        devmode.dmSize = (short)Marshal.SizeOf(devmode);
+        if (0 != EnumDisplaySettings(null, ENUM_CURRENT_SETTINGS, ref devmode))
+        {
+            return (devmode.dmPelsWidth, devmode.dmPelsHeight, devmode.dmDisplayFrequency);
+        }
+        return (1920, 1080, 60);
     }
 
 

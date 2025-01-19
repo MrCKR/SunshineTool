@@ -42,6 +42,10 @@ public static class Util
         if (cfg == null)
         {
             cfg = new Cfg();
+            var curResolution = DisplayUtil.GetCurResolution();
+            cfg.MainWidth = curResolution.Item1;
+            cfg.MainHeight = curResolution.Item2;
+            cfg.MainFps = curResolution.Item3;
             File.WriteAllText(cfgPath, JsonSerializer.Serialize(cfg));
         }
         return cfg;
@@ -50,17 +54,23 @@ public static class Util
     //设置开机自启
     public static void SetStartup()
     {
-        // 注册表路径，一般用户的启动项
-        string registryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-
-        // 打开注册表
-        using (RegistryKey key = Registry.CurrentUser.OpenSubKey(registryKey, true))
+        try
         {
-            // 添加程序路径到注册表
-            if (key != null)
+            Console.WriteLine("设置开机自启");
+            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            if (registryKey == null)
             {
-                key.SetValue(AppKey, ExePath);
+                Console.WriteLine("注册表不存在，创建注册表");
+                registryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
             }
+            if (registryKey != null)
+            {
+                registryKey.SetValue(AppKey, ExePath);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Console.WriteLine("设置开机自启失败,错误:" + e.Message);
         }
     }
 
@@ -146,7 +156,7 @@ public static class Util
     {
         //切换拓展屏
         Console.WriteLine("切换拓展屏");
-        ChangeDisplay.SwitchDisplayMode(3);
+        DisplayUtil.SwitchDisplayMode(3);
         //等待100毫秒
         Console.WriteLine("等待100毫秒");
         Task.Delay(100);
@@ -155,7 +165,7 @@ public static class Util
         var y = ArgGetInt(ArgType.y, 1080);
         var fps = ArgGetInt(ArgType.fps, 60);
         Console.WriteLine($"设置分辨率, x={x}, y={y}, fps={fps}");
-        ChangeDisplay.ChangeResolution(x, y, fps);
+        DisplayUtil.ChangeResolution(x, y, fps);
         Console.WriteLine("等待100毫秒");
         Task.Delay(100);
         //开启steam
@@ -170,7 +180,7 @@ public static class Util
     {
         //回到主屏幕
         Console.WriteLine("回到主屏幕");
-        ChangeDisplay.SwitchDisplayMode(0);
+        DisplayUtil.SwitchDisplayMode(0);
         //等待100毫秒
         Console.WriteLine("等待100毫秒");
         Task.Delay(100);
@@ -179,7 +189,7 @@ public static class Util
         var y = Cfg.MainHeight;
         var fps = Cfg.MainFps;
         Console.WriteLine($"恢复分辨率, x={x}, y={y}, fps={fps}");
-        ChangeDisplay.ChangeResolution(x, y, fps);
+        DisplayUtil.ChangeResolution(x, y, fps);
         Console.WriteLine("等待100毫秒");
         Task.Delay(100);
         //关闭steam
@@ -194,6 +204,16 @@ public static class Util
     {
         Console.WriteLine($"执行命令:{cmd}");
         Process.Start("cmd.exe", $"/c {cmd}");
+    }
+
+    public static void Log(string msg)
+    {
+        var logPath = Path.Combine(AppDir, "log.log");
+        if (!File.Exists(logPath))
+        {
+            using (var fs = File.Create(logPath)){}
+        }
+        File.AppendAllText(logPath, msg + "\r\n");
     }
 
 }

@@ -8,10 +8,13 @@ Util.ParseArgs(args);
 //同时切换回主屏幕
 if (Util.Args.Count == 0)
 {
+    //等待10秒
+    //Thread.Sleep(10000);
     Console.WriteLine("没有参数，设置开机自启");
     Util.SetStartup();
     Console.WriteLine("切换回主屏幕");
-    ChangeDisplay.SwitchDisplayMode(0);
+    Util.Undo();
+    Util.Log("默认启动" + DateTime.Now);
     return;
 }
 

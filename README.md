@@ -7,7 +7,7 @@
 4. 下载工具的release放到任意目录(目录不要有中文或空格),例如就在C盘下,
 5. 选好位置之后需要双击运行一下SunshineTool.exe,第一次运行会自动生成配置文件 cfg.json
 6. 配置sunshine的app命令
-7. 打开应用时执行命令:C:\SunshineTool\SunshineTool.exe r=open x= %SUNSHINE_CLIENT_WIDTH% y=%SUNSHINE_CLIENT_HEIGHT% fps=%SUNSHINE_CLIENT_FPS% steam=true
+7. 打开应用时执行命令:C:\SunshineTool\SunshineTool.exe r=open x=%SUNSHINE_CLIENT_WIDTH% y=%SUNSHINE_CLIENT_HEIGHT% fps=%SUNSHINE_CLIENT_FPS% steam=true
 8. 退出应用时执行命令:C:\SunshineTool\SunshineTool.exe r=close steam=true
 9. 上面的C:\SunshineTool\SunshineTool.exe应该修改为你自己的目录
 10. 上面的 steam=true 代表启动或退出steam大屏幕模式,不需要就修改为 steam=false,在app的配置中自己选择,如果配置steam大屏幕app时,记得把sunshine原本的命令删除

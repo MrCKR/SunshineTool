@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using System.Text.Json;
+using WinAPI;
 
 public enum ArgType
 {
@@ -41,13 +42,19 @@ public static class Util
 
         if (cfg == null)
         {
-            cfg = new Cfg();
-            var curResolution = DisplayUtil.GetCurResolution();
-            cfg.MainWidth = curResolution.Item1;
-            cfg.MainHeight = curResolution.Item2;
-            cfg.MainFps = curResolution.Item3;
+            cfg = InitCfg();
             File.WriteAllText(cfgPath, JsonSerializer.Serialize(cfg));
         }
+        return cfg;
+    }
+
+    static Cfg InitCfg()
+    {
+        var cfg = new Cfg();
+        var curResolution = DisplayUtil.GetCurResolution();
+        cfg.MainWidth = curResolution.Item1;
+        cfg.MainHeight = curResolution.Item2;
+        cfg.MainFps = curResolution.Item3;
         return cfg;
     }
 
@@ -56,11 +63,11 @@ public static class Util
     {
         try
         {
-            Console.WriteLine("设置开机自启");
+            Util.Log("设置开机自启");
             RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
             if (registryKey == null)
             {
-                Console.WriteLine("注册表不存在，创建注册表");
+                Util.Log("注册表不存在，创建注册表");
                 registryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
             }
             if (registryKey != null)
@@ -70,7 +77,7 @@ public static class Util
         }
         catch (System.Exception e)
         {
-            Console.WriteLine("设置开机自启失败,错误:" + e.Message);
+            Util.Log("设置开机自启失败,错误:" + e.Message);
         }
     }
 
@@ -91,7 +98,7 @@ public static class Util
     // 解析参数
     public static void ParseArgs(string[] args)
     {
-        Console.WriteLine("解析参数");
+        Util.Log("解析参数");
         Dictionary<string, string> result = new Dictionary<string, string>();
         foreach (string arg in args)
         {
@@ -100,8 +107,21 @@ public static class Util
             // 假设参数格式为 key=value
             string[] parts = arg.Split('=');
             if (parts.Length != 2) continue;
-            Console.WriteLine($"{parts[0]}={parts[1]}");
-            result[parts[0]] = parts[1];
+            string key = parts[0];
+            string value = parts[1];
+
+            // 检查值是否包含环境变量格式
+            if (value.StartsWith("%") && value.EndsWith("%"))
+            {
+                string envVar = value.Trim('%'); // 提取环境变量名
+                string envValue = Environment.GetEnvironmentVariable(envVar); // 获取环境变量值
+                if (envValue != null)
+                {
+                    value = envValue; // 替换为环境变量的实际值
+                }
+            }
+            Util.Log($"{key}={value}");
+            result[key] = value;
         }
         Args = result;
     }
@@ -155,23 +175,23 @@ public static class Util
     public static void Do()
     {
         //切换拓展屏
-        Console.WriteLine("切换拓展屏");
+        Util.Log("切换拓展屏");
         DisplayUtil.SwitchDisplayMode(3);
         //等待100毫秒
-        Console.WriteLine("等待100毫秒");
+        Util.Log("等待100毫秒");
         Task.Delay(100);
         //设置分辨率
         var x = ArgGetInt(ArgType.x, 1920);
         var y = ArgGetInt(ArgType.y, 1080);
         var fps = ArgGetInt(ArgType.fps, 60);
-        Console.WriteLine($"设置分辨率, x={x}, y={y}, fps={fps}");
+        Util.Log($"设置分辨率, x={x}, y={y}, fps={fps}");
         DisplayUtil.ChangeResolution(x, y, fps);
-        Console.WriteLine("等待100毫秒");
+        Util.Log("等待100毫秒");
         Task.Delay(100);
         //开启steam
         if (ArgGetBool(ArgType.steam, false))
         {
-            Console.WriteLine("开启steam");
+            Util.Log("开启steam");
             ShowBigSteam(true);
         }
     }
@@ -179,37 +199,40 @@ public static class Util
     public static void Undo()
     {
         //回到主屏幕
-        Console.WriteLine("回到主屏幕");
+        Util.Log("回到主屏幕");
         DisplayUtil.SwitchDisplayMode(0);
         //等待100毫秒
-        Console.WriteLine("等待100毫秒");
+        Util.Log("等待100毫秒");
         Task.Delay(100);
         //恢复分辨率
         var x = Cfg.MainWidth;
         var y = Cfg.MainHeight;
         var fps = Cfg.MainFps;
-        Console.WriteLine($"恢复分辨率, x={x}, y={y}, fps={fps}");
+        Util.Log($"恢复分辨率, x={x}, y={y}, fps={fps}");
         DisplayUtil.ChangeResolution(x, y, fps);
-        Console.WriteLine("等待100毫秒");
+        Util.Log("等待100毫秒");
         Task.Delay(100);
         //关闭steam
         if (ArgGetBool(ArgType.steam, false))
         {
-            Console.WriteLine("关闭steam");
+            Util.Log("关闭steam");
             ShowBigSteam(false);
         }
     }
 
     public static void Cmd(string cmd)
     {
-        Console.WriteLine($"执行命令:{cmd}");
+        Util.Log($"执行命令:{cmd}");
         Process.Start("cmd.exe", $"/c {cmd}");
     }
 
     public static void Log(string msg)
     {
-        return;
         msg = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {msg}";
+        Console.WriteLine(msg);
+#if !DEBUG
+        return;
+#endif
         var logPath = Path.Combine(AppDir, "log.log");
         if (!File.Exists(logPath))
         {

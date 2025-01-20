@@ -1,5 +1,7 @@
 using System.Runtime.InteropServices;
 
+namespace WinAPI;
+
 public static class DisplayUtil
 {
 
@@ -35,46 +37,6 @@ public static class DisplayUtil
     private static extern int EnumDisplaySettings(string deviceName, int modeNum, ref DEVMODE devMode);
     [DllImport("user32.dll")]
     private static extern int ChangeDisplaySettings(ref DEVMODE devMode, int flags);
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
-    private struct DEVMODE
-    {
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-        public string dmDeviceName;
-
-        public short dmSpecVersion;
-        public short dmDriverVersion;
-        public short dmSize;
-        public short dmDriverExtra;
-        public int dmFields;
-        public int dmPositionX;
-        public int dmPositionY;
-        public int dmDisplayOrientation;
-        public int dmDisplayFixedOutput;
-        public short dmColor;
-        public short dmDuplex;
-        public short dmYResolution;
-        public short dmTTOption;
-        public short dmCollate;
-
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-        public string dmFormName;
-
-        public short dmLogPixels;
-        public short dmBitsPerPel;
-        public int dmPelsWidth;
-        public int dmPelsHeight;
-        public int dmDisplayFlags;
-        public int dmDisplayFrequency;
-        public int dmICMMethod;
-        public int dmICMIntent;
-        public int dmMediaType;
-        public int dmDitherType;
-        public int dmReserved1;
-        public int dmReserved2;
-        public int dmPanningWidth;
-        public int dmPanningHeight;
-    };
 
 
     /// <summary>
@@ -127,7 +89,7 @@ public static class DisplayUtil
 
             if (iRet == DISP_CHANGE_FAILED)
             {
-                Console.WriteLine($"改变屏幕分辨率失败, 错误码: {iRet}");
+                Util.Log($"改变屏幕分辨率失败, 错误码: {iRet}");
             }
             else
             {
@@ -141,12 +103,12 @@ public static class DisplayUtil
                         }
                     case DISP_CHANGE_RESTART:
                         {
-                            Console.WriteLine($"你需要重新启动电脑设置才能生效, 错误码: {iRet}");
+                            Util.Log($"你需要重新启动电脑设置才能生效, 错误码: {iRet}");
                             break;
                         }
                     default:
                         {
-                            Console.WriteLine($"改变屏幕分辨率失败, 错误码: {iRet}");
+                            Util.Log($"改变屏幕分辨率失败, 错误码: {iRet}");
                             break;
                         }
                 }
@@ -167,6 +129,42 @@ public static class DisplayUtil
         }
         return (1920, 1080, 60);
     }
-
-
 }
+
+// 定义DEVMODE结构
+[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+internal struct DEVMODE
+{
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+    public string dmDeviceName;
+    public short dmSpecVersion;
+    public short dmDriverVersion;
+    public short dmSize;
+    public short dmDriverExtra;
+    public int dmFields;
+    public int dmPositionX;
+    public int dmPositionY;
+    public int dmDisplayOrientation;
+    public int dmDisplayFixedOutput;
+    public short dmColor;
+    public short dmDuplex;
+    public short dmYResolution;
+    public short dmTTOption;
+    public short dmCollate;
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+    public string dmFormName;
+    public short dmLogPixels;
+    public short dmBitsPerPel;
+    public int dmPelsWidth;
+    public int dmPelsHeight;
+    public int dmDisplayFlags;
+    public int dmDisplayFrequency;
+    public int dmICMMethod;
+    public int dmICMIntent;
+    public int dmMediaType;
+    public int dmDitherType;
+    public int dmReserved1;
+    public int dmReserved2;
+    public int dmPanningWidth;
+    public int dmPanningHeight;
+};

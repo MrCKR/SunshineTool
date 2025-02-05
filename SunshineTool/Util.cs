@@ -58,17 +58,18 @@ public static class Util
         return cfg;
     }
 
+    static string KeyStr = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
     //设置开机自启
     public static void SetStartup()
     {
         try
         {
             Util.Log("设置开机自启");
-            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+            RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(KeyStr, true);
             if (registryKey == null)
             {
                 Util.Log("注册表不存在，创建注册表");
-                registryKey = Registry.CurrentUser.CreateSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run");
+                registryKey = Registry.CurrentUser.CreateSubKey(KeyStr);
             }
             if (registryKey != null)
             {
@@ -84,9 +85,7 @@ public static class Util
     // 取消开机自启
     public static void RemoveStartup()
     {
-        string registryKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
-
-        using (RegistryKey key = Registry.CurrentUser.OpenSubKey(registryKey, true))
+        using (RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyStr, true))
         {
             if (key != null)
             {

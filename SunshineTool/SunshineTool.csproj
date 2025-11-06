@@ -6,8 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishSingleFile>true</PublishSingleFile><!--单文件发布-->
-    <PublishTrimmed/> <!-- 可选：此选项会精简发布的文件，但可能会影响反射 -->
+    <PublishTrimmed /> <!-- 可选：此选项会精简发布的文件，但可能会影响反射 -->
     <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers> <!-- 根据您的目标平台选择相应的 RID -->
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="9.0.10" />
+  </ItemGroup>
 
 </Project>

@@ -2,23 +2,20 @@ using System;
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Threading.Tasks;
-using WinAPI;
 
-namespace DisplayFixService
+// =======================
+// Windows Service 类
+// =======================
+public class ScreenSwitchService : ServiceBase
 {
-    // =======================
-    // Windows Service 类
-    // =======================
-    public class ScreenSwitchService : ServiceBase
+    public ScreenSwitchService()
     {
-        public ScreenSwitchService()
-        {
-            ServiceName = ServiceHelper.ServiceNameConst;
-        }
+        ServiceName = ServiceHelper.ServiceNameConst;
+    }
 
-        protected override void OnStart(string[] args)
-        {
-            Util.Log("服务启动，执行屏幕切换逻辑...");
+    protected override void OnStart(string[] args)
+    {
+        Util.Log("服务启动，执行屏幕切换逻辑...");
         try
         {
             Util.SwitchToMainScreen();
@@ -44,5 +41,4 @@ namespace DisplayFixService
         OnStart(Array.Empty<string>());
         OnStop();
     }
-}
 }

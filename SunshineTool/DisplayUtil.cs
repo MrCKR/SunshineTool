@@ -1,7 +1,5 @@
 using System.Runtime.InteropServices;
 
-namespace WinAPI;
-
 public static class DisplayUtil
 {
 

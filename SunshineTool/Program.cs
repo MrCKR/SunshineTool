@@ -1,5 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+//打包
+//dotnet publish -c Release -r win-x64 --self-contained true -o ./publish
+
 using System.ServiceProcess;
 
 Util.Log(Util.ExePath);

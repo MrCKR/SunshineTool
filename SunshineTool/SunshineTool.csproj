@@ -6,8 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PublishSingleFile>true</PublishSingleFile><!--单文件发布-->
-    <PublishTrimmed /> <!-- 可选：此选项会精简发布的文件，但可能会影响反射 -->
+    <PublishTrimmed>true</PublishTrimmed> <!-- 可选：此选项会精简发布的文件，但可能会影响反射 -->
+    <SelfContained>true</SelfContained>
     <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers> <!-- 根据您的目标平台选择相应的 RID -->
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile><!--会把 exe 内部内容压缩，通常能减少 10–20MB 左右。-->
   </PropertyGroup>
 
   <ItemGroup>

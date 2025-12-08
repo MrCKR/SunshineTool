@@ -33,11 +33,16 @@ public static class ServiceHelper
         try
         {
             string exePath = Assembly.GetExecutingAssembly().Location;
-            var psi = new ProcessStartInfo("sc.exe", $"create {ServiceNameConst} binPath= \"{exePath}\" start= auto")
+            var psi = new ProcessStartInfo("sc.exe", $"create {ServiceNameConst} binPath= \"{exePath}\"  start= boot type= own obj= LocalSystem")
             {
                 Verb = "runas",
                 UseShellExecute = true
             };
+            // var psi = new ProcessStartInfo("sc.exe", $"create {ServiceNameConst} binPath= \"{exePath}\" start= auto")
+            // {
+            //     Verb = "runas",
+            //     UseShellExecute = true
+            // };
             Process.Start(psi)?.WaitForExit();
             Util.Log("服务安装命令已执行。");
         }

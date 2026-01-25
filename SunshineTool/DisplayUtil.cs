@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Threading;
 
 public static class DisplayUtil
 {
@@ -64,7 +65,20 @@ public static class DisplayUtil
                 smode = SDC_APPLY | SDC_TOPOLOGY_INTERNAL;
                 break;
         }
-        SetDisplayConfig(0, IntPtr.Zero, 0, IntPtr.Zero, smode);
+        Util.Log($"调用 SetDisplayConfig flags=0x{smode:X} type={type}");
+        var ret = SetDisplayConfig(0, IntPtr.Zero, 0, IntPtr.Zero, smode);
+        Util.Log($"SetDisplayConfig 返回值: {ret}");
+
+        // 登录前 INTERNAL 切换失败时的回退策略：EXTEND → 等待 → INTERNAL
+        if (type == 0 && ret != 0)
+        {
+            Util.Log("INTERNAL 切换失败，执行回退：先切 EXTEND 再回到 INTERNAL");
+            var retExtend = SetDisplayConfig(0, IntPtr.Zero, 0, IntPtr.Zero, SDC_APPLY | SDC_TOPOLOGY_EXTEND);
+            Util.Log($"回退 EXTEND 返回值: {retExtend}");
+            Thread.Sleep(500);
+            var retInternal = SetDisplayConfig(0, IntPtr.Zero, 0, IntPtr.Zero, SDC_APPLY | SDC_TOPOLOGY_INTERNAL);
+            Util.Log($"回退 INTERNAL 返回值: {retInternal}");
+        }
     }
 
     // 改变分辨率

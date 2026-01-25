@@ -18,7 +18,7 @@ public static class Util
 {
     public static string AppDir => Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
     public static string ExePath => Process.GetCurrentProcess().MainModule.FileName;
-    public static Dictionary<string, string> Args { get; private set; }
+    public static Dictionary<string, string> Args { get; private set; } = new();
     public static Cfg Cfg => LoadConfig();
 
     public static Cfg LoadConfig()
@@ -29,18 +29,27 @@ public static class Util
         {
             if (File.Exists(cfgPath))
             {
-                cfg = JsonSerializer.Deserialize<Cfg>(File.ReadAllText(cfgPath));
+                var json = File.ReadAllText(cfgPath);
+                cfg = JsonSerializer.Deserialize(json, CfgJsonContext.Default.Cfg);
             }
         }
         catch (Exception e)
         {
-
+            Util.Log("读取配置失败: " + e.Message);
         }
 
         if (cfg == null)
         {
             cfg = InitCfg();
-            File.WriteAllText(cfgPath, JsonSerializer.Serialize(cfg));
+            try
+            {
+                var jsonOut = JsonSerializer.Serialize(cfg, CfgJsonContext.Default.Cfg);
+                File.WriteAllText(cfgPath, jsonOut);
+            }
+            catch (Exception e)
+            {
+                Util.Log("写入配置失败: " + e.Message);
+            }
         }
         return cfg;
     }
@@ -162,25 +171,38 @@ public static class Util
 
     public static async Task Undo()
     {
-        //回到主屏幕
-        Util.Log("回到主屏幕");
-        DisplayUtil.SwitchDisplayMode(0);
-        //等待100毫秒
-        Util.Log("等待100毫秒");
-        await Task.Delay(100);
-        //恢复分辨率
-        var x = Cfg.MainWidth;
-        var y = Cfg.MainHeight;
-        var fps = Cfg.MainFps;
-        Util.Log($"恢复分辨率, x={x}, y={y}, fps={fps}");
-        DisplayUtil.ChangeResolution(x, y, fps);
-        Util.Log("等待100毫秒");
-        await Task.Delay(100);
-        //关闭steam
-        if (ArgGetBool(ArgType.steam, false))
+        try
         {
-            Util.Log("关闭steam");
-            ShowBigSteam(false);
+            // 回到主屏幕（拓扑 INTERNAL）
+            Util.Log("回到主屏幕");
+            DisplayUtil.SwitchDisplayMode(0);
+            Util.Log("拓扑切换到 INTERNAL 完成，准备等待稳定");
+
+            // 增加等待以保证图形栈稳定
+            Util.Log("等待1000毫秒");
+            await Task.Delay(1000);
+
+            // 恢复分辨率
+            var x = Cfg.MainWidth;
+            var y = Cfg.MainHeight;
+            var fps = Cfg.MainFps;
+            Util.Log($"恢复分辨率, x={x}, y={y}, fps={fps}");
+            DisplayUtil.ChangeResolution(x, y, fps);
+            
+            // 追加短暂等待
+            Util.Log("等待500毫秒");
+            await Task.Delay(500);
+
+            // 关闭 steam（可选）
+            if (ArgGetBool(ArgType.steam, false))
+            {
+                Util.Log("关闭steam");
+                ShowBigSteam(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            Util.Log("Undo 执行异常: " + ex);
         }
     }
 
@@ -194,15 +216,27 @@ public static class Util
     {
         msg = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {msg}";
         Console.WriteLine(msg);
+
+        bool shouldWrite = true;
 #if !DEBUG
-        return;
+        // Release 构建：在服务模式（非交互）下写入文件日志；交互模式可仅控制台
+        shouldWrite = !Environment.UserInteractive;
 #endif
+        if (!shouldWrite) return;
+
         var logPath = Path.Combine(AppDir, "log.log");
-        if (!File.Exists(logPath))
+        try
         {
-            using (var fs = File.Create(logPath)) { }
+            if (!File.Exists(logPath))
+            {
+                using var _ = File.Create(logPath);
+            }
+            File.AppendAllText(logPath, msg + "\r\n");
         }
-        File.AppendAllText(logPath, msg + "\r\n");
+        catch
+        {
+            // 避免服务模式因日志写入报错而中断
+        }
     }
 
 }

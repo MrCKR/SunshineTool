@@ -1,14 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
-using System.Threading.Tasks;
+using System.IO;
+using System.Text;
 
 // =======================
-// 安装 / 卸载 工具类
+// 安装 / 卸载 工具类 + 关机计划任务
 // =======================
 public static class ServiceHelper
 {
@@ -32,19 +30,64 @@ public static class ServiceHelper
     {
         try
         {
-            string exePath = Assembly.GetExecutingAssembly().Location;
-            var psi = new ProcessStartInfo("sc.exe", $"create {ServiceNameConst} binPath= \"{exePath}\"  start= boot type= own obj= LocalSystem")
+            // 单文件发布下 Assembly.Location 可能为空，改用实际进程路径
+            string exePath = Util.ExePath;
+            Util.Log($"准备安装服务，binPath={exePath}");
+
+            bool IsAdmin()
             {
-                Verb = "runas",
-                UseShellExecute = true
-            };
-            // var psi = new ProcessStartInfo("sc.exe", $"create {ServiceNameConst} binPath= \"{exePath}\" start= auto")
-            // {
-            //     Verb = "runas",
-            //     UseShellExecute = true
-            // };
-            Process.Start(psi)?.WaitForExit();
-            Util.Log("服务安装命令已执行。");
+                try
+                {
+                    var id = System.Security.Principal.WindowsIdentity.GetCurrent();
+                    var principal = new System.Security.Principal.WindowsPrincipal(id);
+                    return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            if (IsAdmin())
+            {
+                // 管理员上下文：直接运行 sc，并重定向输出
+                var psi = new ProcessStartInfo("sc.exe", $"create {ServiceNameConst} binPath= \"{exePath}\" start= auto type= own obj= LocalSystem")
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                proc?.WaitForExit();
+                string stdout = proc?.StandardOutput.ReadToEnd() ?? string.Empty;
+                string stderr = proc?.StandardError.ReadToEnd() ?? string.Empty;
+                Util.Log("sc create stdout: " + stdout.Trim());
+                Util.Log("sc create stderr: " + stderr.Trim());
+                Util.Log("sc create exit code: " + (proc?.ExitCode ?? -1));
+            }
+            else
+            {
+                // 非管理员上下文：触发 UAC，通过 cmd.exe /c 调用 sc
+                var psi = new ProcessStartInfo("cmd.exe", $"/c sc create {ServiceNameConst} binPath= \"{exePath}\" start= auto type= own obj= LocalSystem")
+                {
+                    Verb = "runas",
+                    UseShellExecute = true
+                };
+                Process.Start(psi)?.WaitForExit();
+                Util.Log("已通过 UAC 调用 cmd.exe 执行 sc create");
+            }
+
+            // 校验安装结果
+            if (IsServiceInstalled(ServiceNameConst))
+            {
+                Util.Log("服务安装成功！");
+            }
+            else
+            {
+                Util.Log("服务安装失败：请在管理员终端手动执行以下命令以安装服务");
+                Util.Log($"sc create {ServiceNameConst} binPath= \"{exePath}\" start= auto type= own obj= LocalSystem");
+            }
         }
         catch (Exception ex)
         {
@@ -56,6 +99,7 @@ public static class ServiceHelper
     {
         try
         {
+            // 再卸载服务
             var psi = new ProcessStartInfo("sc.exe", $"delete {ServiceNameConst}")
             {
                 Verb = "runas",
@@ -70,4 +114,3 @@ public static class ServiceHelper
         }
     }
 }
-

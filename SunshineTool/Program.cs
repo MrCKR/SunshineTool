@@ -4,6 +4,7 @@
 //dotnet publish -c Release -r win-x64 --self-contained true -o ./publish
 
 using System.ServiceProcess;
+using System.Security.Principal;
 
 Util.Log(Util.ExePath);
 Util.Log(Util.AppDir);
@@ -26,6 +27,27 @@ if (Util.Args.Count == 0)
     // ---- 服务安装 ----
     if (!ServiceHelper.IsServiceInstalled(ServiceHelper.ServiceNameConst))
     {
+        // 管理员权限检测与提示
+        bool IsAdmin()
+        {
+            try
+            {
+                var id = WindowsIdentity.GetCurrent();
+                var principal = new WindowsPrincipal(id);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        if (!IsAdmin())
+        {
+            Util.Log("检测到当前进程可能不是管理员权限，安装服务可能失败。请以管理员身份运行本程序或在管理员终端执行以下命令：");
+            Util.Log($"sc create {ServiceHelper.ServiceNameConst} binPath= \"{Util.ExePath}\" start= auto type= own obj= LocalSystem");
+        }
+
         Util.Log("服务未安装，开始安装...");
         ServiceHelper.InstallService();
         return;
